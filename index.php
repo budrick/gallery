@@ -13,15 +13,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Finder\Finder;
 
 $app = new Silex\Application();
-$app['debug'] = true;
 $app['config'] = array_merge(array(
   'thumb.width'  => 120,
   'thumb.height' => 120,
   'adapter'      => 'GD',
   'template'     => 'template.html.twig',
   'cache'        => 'cache',
+  'debug'        => false,
   ),parse_ini_file(__DIR__.'/gallery.ini')
 );
+
+$app['debug'] = $app['config']['debug'] ? true : false;
+
 
 // Register services
 if (strtolower($app['config']['adapter']) == 'gd')
@@ -62,6 +65,7 @@ $app->get('/images/{path}', function ($path) use ($app) {
   $relative_path = substr($path, strlen(__DIR__) + 1);
   
   
+  // Get images in the given folder
   $finder = new Finder;
   $finder->files()->in($path)->depth(0)->name('/\.png|\.gif|\.jpg/');
   
