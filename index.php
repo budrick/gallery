@@ -1,14 +1,12 @@
 <?php
 
 // Single-script gallery
-// Package as phar maybe?
 
-
-// Initialise kernel
-// Set up route: straight conversion of URL as pathname, dispatch to gallery controller
-// Controller loads image files at path
-// Check for thumbnails, else create
-// TODO: consider using kwallsmith's Spork library to handle parallel thumbnail generation?
+/* TODO:
+ * Root folder needs to be configurable, not just "images"
+ * Need to package this as a PHAR if possible to make it just gallery.phar, gallery.ini, and .htaccess
+ * Add way to ascend to parent directory if possible
+ */
 
 require_once __DIR__.'/vendor/.composer/autoload.php';
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +20,7 @@ $app['config'] = array_merge(array(
   'adapter'      => 'GD',
   'template'     => 'template.html.twig',
   'cache'        => 'cache',
-  ),parse_ini_file(__DIR__.'/config.ini')
+  ),parse_ini_file(__DIR__.'/gallery.ini')
 );
 
 // Register services
@@ -78,6 +76,7 @@ $app->get('/images/{path}', function ($path) use ($app) {
     );
   }
   
+  // Folder list
   $folders = array();
   $finder = new Finder;
   $finder->directories()->in($path)->depth(0);
@@ -86,11 +85,17 @@ $app->get('/images/{path}', function ($path) use ($app) {
     $folders[] = $folder->getRelativePathname();
   }
   
-  return $app['twig']->render($app['config']['template'], array(
+  // Render response with cache headers
+  $response = new Response;
+  $response->setPublic();
+  $response->setSharedMaxAge(10);
+  $response->setContent($app['twig']->render($app['config']['template'], array(
     'images'   => $files,
     'folders' => $folders,
     'path'    => $relative_path,
-  ));
+  )));  
+  return $response;
+  
 })
   ->value('path', '')
   ->assert('path', '.*')
@@ -127,6 +132,7 @@ $app->get('/thumbnails/{path}', function ($path) use ($app) {
     throw $e; 
   }
 
+  // Generate response with cache control headers
   $response = new Response;
   $response->setContent($image);
   $response->headers->set('Content-Type', 'image/jpeg');
@@ -138,5 +144,5 @@ $app->get('/thumbnails/{path}', function ($path) use ($app) {
   ->bind('thumbnail');
 ;
 
-// $app['http_cache']->run();
-$app->run();
+$app['http_cache']->run();
+// $app->run();
