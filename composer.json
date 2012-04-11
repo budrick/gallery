@@ -1,0 +1,16 @@
+{
+    "name": "inanimatt/gallery",
+    "description": "Simple image gallery",
+    "authors": [
+        {
+            "name": "Matt Robinson",
+            "email": "matt@inanimatt.com"
+        }
+    ],
+    "require": {
+      "imagine/imagine": "0.2.*",
+      "silex/silex": "1.0.x-dev",
+      "twig/twig": "1.6.*",
+      "symfony/twig-bridge": "2.0.*"
+    }
+}

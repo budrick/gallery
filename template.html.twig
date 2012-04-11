@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>{{path}}</title>
+  
+</head>
+<body>
+  
+  <h1>{{path}}</h1>
+  
+  <ul>
+    {% for i in images %}
+      <li><a href="{{ i.url }}"><img src="{{ i.thumbnail }}" width="{{ i.thumbnail_width }}" height="{{ i.thumbnail_width }}" alt="{{ i.url }}"></a></li>
+    {% endfor %}
+  </ul>
+  
+  <ul>
+    {% for f in folders %}
+      <li><a href="{{ f }}">{{ f }}</a></li>
+    {% endfor %}
+  </ul>
+  
+</body>
+</html>
