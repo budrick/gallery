@@ -6,12 +6,14 @@ use Symfony\Component\Finder\Finder;
 $app = new Silex\Application();
 
 $default_config = array(
-  'thumb.width'  => 120,
-  'thumb.height' => 120,
-  'adapter'      => 'GD',
-  'template'     => 'template.html.twig',
-  'cache'        => 'cache',
-  'debug'        => false,
+  'thumb.width'   => 120,
+  'thumb.height'  => 120,
+  'adapter'       => 'GD',
+  'template.path' => __DIR__.'/../',
+  'template'      => 'template.html.twig',
+  'cache'         => __DIR__.'/cache',
+  'debug'         => false,
+  'path'          => __DIR__.'/images',
 );
 
 $app['config'] = $default_config;
@@ -31,11 +33,11 @@ if (strtolower($app['config']['adapter']) == 'gd')
 
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new Silex\Provider\HttpCacheServiceProvider(), array(
-    'http_cache.cache_dir' => __DIR__.'/../'.$app['config']['cache'],
+    'http_cache.cache_dir' => $app['config']['cache'],
 ));
 $app->register(new Silex\Provider\SymfonyBridgesServiceProvider(), array());
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path'       => __DIR__.'/../',
+    'twig.path'       => $app['config']['template.path'],
 ));
 
 // Browser controller
@@ -44,17 +46,17 @@ $app->get('/images/{path}', function ($path) use ($app) {
   // Prepare and validate path - must exist and be a subdirectory of images
   if ($path)
   {
-    $path = realpath(__DIR__.'/../images/'.$path);
-    if (strpos($path, __DIR__.'/../images/') !== 0)
+    $path = realpath($app['config']['path'].DIRECTORY_SEPARATOR.$path);
+    if (strpos($path, $app['config']['path'].DIRECTORY_SEPARATOR) !== 0)
     {
       $app->abort(404, "Not found");
     }
   
   } else {
-    $path = __DIR__.'/../images';
+    $path = $app['config']['path'];
   }
   
-  $relative_path = substr($path, strlen(__DIR__.'/../'));
+  $relative_path = substr($path, strlen($app['config']['path'].DIRECTORY_SEPARATOR));
   
   
   // Get images in the given folder
@@ -105,8 +107,8 @@ $app->get('/thumbnails/{path}', function ($path) use ($app) {
   $path = substr($path, 0, -4);
   
   // File must exist, and its resolved path must be beneath the images folder
-  $base_path = realpath(__DIR__.'/../images');
-  $full_path = realpath(__DIR__.'/../'.$path);
+  $base_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR);
+  $full_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR.$path);
   if (!$full_path)
   {
     $app->abort(404, "File not found.");

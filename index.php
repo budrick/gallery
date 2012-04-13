@@ -15,8 +15,8 @@ $app = require __DIR__.'/src/app.php';
 if (is_file(__DIR__.'/gallery.ini')) {
   $config = parse_ini_file(__DIR__.'/gallery.ini');
   $app['config'] = array_merge($app['config'], $config);
-  // $app['debug'] = true;
+  $app['debug'] = true;
 }
 
-$app['http_cache']->run();
-// $app->run();
+// $app['http_cache']->run();
+$app->run();
