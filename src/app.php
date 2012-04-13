@@ -13,7 +13,7 @@ $default_config = array(
   'template'      => 'template.html.twig',
   'cache'         => sys_get_temp_dir(),
   'debug'         => false,
-  'path'          => __DIR__.'/../images',
+  'path'          => __DIR__.'/../',
 );
 
 $app['config'] = $default_config;
@@ -30,9 +30,8 @@ elseif (is_file(__DIR__.'/../gallery.ini'))
   $app['config'] = array_merge($app['config'], $config);
 }
 
+// Set Silex debug according to config
 $app['debug'] = $app['config']['debug'] ? true : false;
-
-
 
 // Image manipulation
 if (strtolower($app['config']['adapter']) == 'gd')
@@ -76,8 +75,52 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
 
 
 
+// Thumbnail generator
+$app->get('/thumbnails/{path}', function ($path) use ($app) {
+  
+  // Strip the final .jpg from the end
+  $path = substr($path, 0, -4);
+  
+  // File must exist, and its resolved path must be beneath the images folder
+  $base_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR);
+  $full_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR.$path);
+  if (!$full_path)
+  {
+    $app->abort(404, "File not found.");
+  }
+  
+  if (strpos($full_path, $base_path) !== 0)
+  {
+    $app->abort(403, "Access denied");
+  }
+  
+  // Generate thumbnail
+  try {
+    $image = $app['imagine']->open($full_path)
+      ->thumbnail(new Imagine\Image\Box($app['config']['thumb.width'],$app['config']['thumb.height']), Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND);
+  } 
+  catch (Imagine\Exception\Exception $e)
+  {
+    // TODO: log and handle exception nicely
+    throw $e; 
+  }
+
+  // Generate response with cache control headers
+  $response = new Response;
+  $response->setContent($image);
+  $response->headers->set('Content-Type', 'image/jpeg');
+  $response->setPublic();
+  $response->setSharedMaxAge(2592000);
+  return $response;
+})
+  ->assert('path', '.*')
+  ->bind('thumbnail');
+;
+
+
+
 // Browser controller
-$app->get('/images/{path}', function ($path) use ($app) {
+$app->get('/{path}', function ($path) use ($app) {
   
   // Prepare and validate path - must exist and be a subdirectory of images
   if ($path)
@@ -136,49 +179,6 @@ $app->get('/images/{path}', function ($path) use ($app) {
 })
   ->value('path', '')
   ->assert('path', '.*')
-;
-
-
-// Thumbnail generator
-$app->get('/thumbnails/{path}', function ($path) use ($app) {
-  
-  // Strip the final .jpg from the end
-  $path = substr($path, 0, -4);
-  
-  // File must exist, and its resolved path must be beneath the images folder
-  $base_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR);
-  $full_path = realpath($app['config']['path'].DIRECTORY_SEPARATOR.$path);
-  if (!$full_path)
-  {
-    $app->abort(404, "File not found.");
-  }
-  
-  if (strpos($full_path, $base_path) !== 0)
-  {
-    $app->abort(403, "Access denied");
-  }
-  
-  // Generate thumbnail
-  try {
-    $image = $app['imagine']->open($full_path)
-      ->thumbnail(new Imagine\Image\Box($app['config']['thumb.width'],$app['config']['thumb.height']), Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND);
-  } 
-  catch (Imagine\Exception\Exception $e)
-  {
-    // TODO: log and handle exception nicely
-    throw $e; 
-  }
-
-  // Generate response with cache control headers
-  $response = new Response;
-  $response->setContent($image);
-  $response->headers->set('Content-Type', 'image/jpeg');
-  $response->setPublic();
-  $response->setSharedMaxAge(2592000);
-  return $response;
-})
-  ->assert('path', '.*')
-  ->bind('thumbnail');
 ;
 
 return $app;
