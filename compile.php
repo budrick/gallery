@@ -16,7 +16,7 @@ $finder->files()
   ->in(__DIR__)
 ;
   
-  $phar = new Phar('gallery.phar', 0, 'gallery.phar');
+$phar = new Phar('gallery.phar', 0, 'gallery.phar');
 // $phar = $phar->convertToExecutable(Phar::TAR, Phar::GZ);
 $phar->setSignatureAlgorithm(Phar::SHA1);
 
@@ -47,3 +47,7 @@ EOF
 
 // save the phar archive to disk
 $phar->stopBuffering();
+
+rename('gallery.phar', 'build/gallery.phar');
+copy('gallery.ini', 'build/gallery.ini');
+copy('basic.html.twig', 'build/basic.html.twig');
