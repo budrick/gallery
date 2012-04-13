@@ -11,42 +11,70 @@ $default_config = array(
   'adapter'       => 'GD',
   'template.path' => __DIR__.'/../',
   'template'      => 'template.html.twig',
-  'cache'         => __DIR__.'/cache',
+  'cache'         => sys_get_temp_dir(),
   'debug'         => false,
-  'path'          => __DIR__.'/images',
+  'path'          => __DIR__.'/../images',
 );
 
 $app['config'] = $default_config;
+
+// Load config file if present
+if (defined('GALLERY_ROOT') && is_file(GALLERY_ROOT.'/gallery.ini')) {
+  $config = parse_ini_file(GALLERY_ROOT.'/gallery.ini');
+  $app['config'] = array_merge($app['config'], $config);
+  
+} 
+elseif (is_file(__DIR__.'/../gallery.ini')) 
+{
+  $config = parse_ini_file(__DIR__.'/../gallery.ini');
+  $app['config'] = array_merge($app['config'], $config);
+}
+
 $app['debug'] = $app['config']['debug'] ? true : false;
 
 
-// Register services
+
+// Image manipulation
 if (strtolower($app['config']['adapter']) == 'gd')
 {
   $app['imagine'] = new Imagine\Gd\Imagine;
-} elseif (strtolower($app['config']['adapter']) == 'imagick')
+} 
+elseif (strtolower($app['config']['adapter']) == 'imagick')
 {
   $app['imagine'] = new Imagine\Imagick\Imagine;
-} else {
+} 
+else 
+{
   throw new Exception("Unsupported image adapter in configuration.");
 }
 
+
+// URL Generator
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
+
+
+// Output cache
 $app->register(new Silex\Provider\HttpCacheServiceProvider(), array(
     'http_cache.cache_dir' => $app['config']['cache'],
 ));
-$app->register(new Silex\Provider\SymfonyBridgesServiceProvider(), array());
 
+
+
+// Templating
+$app->register(new Silex\Provider\SymfonyBridgesServiceProvider(), array());
 $template_path = array($app['config']['template.path'], __DIR__);
-if (defined(GALLERY_ROOT))
+if (defined('GALLERY_ROOT'))
 {
-  $template_path[] = GALLERY_ROOT;
+  array_unshift($template_path, GALLERY_ROOT);
 }
 
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
     'twig.path'  => $template_path,
     'twig.cache' => $app['config']['cache'],
 ));
+
+
+
 
 // Browser controller
 $app->get('/images/{path}', function ($path) use ($app) {
@@ -66,10 +94,13 @@ $app->get('/images/{path}', function ($path) use ($app) {
   
   $relative_path = substr($path, strlen($app['config']['path'].DIRECTORY_SEPARATOR));
   
-  
   // Get images in the given folder
   $finder = new Finder;
-  $finder->files()->in($path)->depth(0)->name('/\.png|\.gif|\.jpg/');
+  $finder->files()
+    ->in($path)
+    ->depth(0)
+    ->name('/\.png|\.gif|\.jpg/')
+  ;
   
   $files = array();
   foreach($finder as $file)

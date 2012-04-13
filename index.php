@@ -12,11 +12,5 @@ require_once __DIR__.'/vendor/.composer/autoload.php';
 
 $app = require __DIR__.'/src/app.php';
 
-if (defined('GALLERY_ROOT') && is_file(GALLERY_ROOT.'/gallery.ini')) {
-  $config = parse_ini_file(GALLERY_ROOT.'/gallery.ini');
-  $app['config'] = array_merge($app['config'], $config);
-  $app['debug'] = true;
-}
-
-// $app['http_cache']->run();
-$app->run();
+$app['http_cache']->run();
+// $app->run();

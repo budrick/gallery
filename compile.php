@@ -11,6 +11,7 @@ $finder->files()
   ->name('*.twig')
   ->name('*.ini')
   ->exclude('Tests')
+  ->exclude(__DIR__.'/test')
   ->notName('compile.php')
   ->in(__DIR__)
 ;
