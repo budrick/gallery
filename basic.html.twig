@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>{{path}}</title>
+  <style type="text/css" media="screen">
+    body{
+      background: #333;
+      color: #eee;
+      font-family: sans-serif;
+    }
+    
+    div.gallery:after
+    {
+      content: "\0020";
+      display: block;
+      height: 0;
+      clear: both;
+      visibility: hidden;
+      overflow:hidden;
+    }
+    
+    div.gallery
+    {
+      display: block;
+    }
+    
+    div.gallery .thumbnail
+    {
+      width: 150px;
+      height: 150px;
+      padding: 18px;
+      border: 1px solid #000;
+      float: left;
+      margin-right: 20px;
+    }
+    
+    div.gallery .thumbnail:hover
+    {
+      background: #444;
+    }
+    
+    hr
+    {
+      margin-top: 1em;
+      clear: both;
+    }
+    
+    a
+    {
+      color: #09f;
+    }
+  </style>
+</head>
+<body>
+  
+  <h1>{{path | default('Images')}}</h1>
+  
+  <div class="gallery">
+    {% for i in images %}
+      <div class="thumbnail">
+        <a href="{{ i.url }}"><img src="{{ i.thumbnail }}" width="{{ i.thumbnail_width }}" height="{{ i.thumbnail_width }}" alt="{{ i.url }}"></a>
+      </div>
+    {% endfor %}
+  </div>
+  
+  {% if folders %}
+  <hr>
+    <h2>Folders</h2>
+    <ul>
+      {% for f in folders %}
+        <li><a href="{{ f }}">{{ f }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+</body>
+</html>
