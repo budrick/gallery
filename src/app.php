@@ -23,10 +23,10 @@ $app['debug'] = $app['config']['debug'] ? true : false;
 // Register services
 if (strtolower($app['config']['adapter']) == 'gd')
 {
-  $app['imagine'] = new Imagine\GD\Imagine;
+  $app['imagine'] = new Imagine\Gd\Imagine;
 } elseif (strtolower($app['config']['adapter']) == 'imagick')
 {
-  $app['imagine'] = new Imagine\ImageMagick\Imagine;
+  $app['imagine'] = new Imagine\Imagick\Imagine;
 } else {
   throw new Exception("Unsupported image adapter in configuration.");
 }
@@ -36,8 +36,16 @@ $app->register(new Silex\Provider\HttpCacheServiceProvider(), array(
     'http_cache.cache_dir' => $app['config']['cache'],
 ));
 $app->register(new Silex\Provider\SymfonyBridgesServiceProvider(), array());
+
+$template_path = array($app['config']['template.path'], __DIR__);
+if (defined(GALLERY_ROOT))
+{
+  $template_path[] = GALLERY_ROOT;
+}
+
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path'       => $app['config']['template.path'],
+    'twig.path'  => $template_path,
+    'twig.cache' => $app['config']['cache'],
 ));
 
 // Browser controller

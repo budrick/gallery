@@ -10,6 +10,7 @@ $finder->files()
   ->name('*.php')
   ->name('*.twig')
   ->name('*.ini')
+  ->exclude('Tests')
   ->notName('compile.php')
   ->in(__DIR__)
 ;
@@ -34,9 +35,8 @@ foreach($finder as $file)
 $phar->setStub(<<<'EOF'
 <?php
 Phar::mapPhar('gallery.phar');
-Phar::interceptFileFuncs();
-
-require_once __DIR__.'/vendor/.composer/autoload.php';
+define('GALLERY_ROOT', __DIR__);
+require_once 'phar://gallery.phar/vendor/.composer/autoload.php';
 require_once 'phar://gallery.phar/index.php';
 
 __HALT_COMPILER();
