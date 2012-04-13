@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteRule ^ index.php [L]
+RewriteRule ^ gallery.phar [L]
+
+AddType application/x-httpd-php .php .phar
+
+
+

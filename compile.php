@@ -51,3 +51,4 @@ $phar->stopBuffering();
 rename('gallery.phar', 'build/gallery.phar');
 copy('gallery.ini', 'build/gallery.ini');
 copy('basic.html.twig', 'build/basic.html.twig');
+copy('test/.htaccess', 'build/htaccess-dist');
